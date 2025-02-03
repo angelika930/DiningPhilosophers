@@ -1,6 +1,8 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <semaphore.h>
+#include <string.h>
 #ifndef NUM_PHILOSOPHERS
 #define NUM_PHILOSOPHERS 5
 #endif
@@ -9,20 +11,27 @@
 
 //Create global semaphore for printing
 sem_t semPrint;
+//Initiate list of semaphores
+sem_t semaphores[NUM_PHILOSOPHERS];
+
 //Initiate struct philosopher data
 typedef struct philosopher_info {
    sem_t leftFork;
    sem_t rightFork;
    char status[NUM_PHILOSOPHERS + STRINGSIZE];
-   pthread_t *threadPtr;
+   pthread_t threadPtr;
    int id; //used to specify if phil is even or odd numbered
 } Philosopher;
+
+//Initiate list of philosopher structs
+Philosopher *listPhil[NUM_PHILOSOPHERS];
 
 //Purpose: print out status of philosophers
 //whatState: 0->eating, 1->thinking, 2->changing
 void printStatus(Philosopher *phil, int whatState, int left, int right) {
    //First find what number semaphore the left and right fork is
-   int lFork = rFork = 0;
+   int lFork = 0;
+   int rFork = 0;
    if (phil->id == 0) {
       lFork = phil->id;
       rFork = NUM_PHILOSOPHERS - 1; //get last indexed semaphore due to circular nature
@@ -32,20 +41,14 @@ void printStatus(Philosopher *phil, int whatState, int left, int right) {
       rFork = phil->id - 1;
    }
    //Initialize status to all dashses
-   memset(phil->status, "-", NUM_PHILOSOPHERS);
+   memset(phil->status, '-', NUM_PHILOSOPHERS);
 
    //set left and right forks in printing message 
    if (left == 1) { //philosopher is eating  
-      phil->status[phil->id] = '0' + phil->id;
+      phil->status[lFork] = '0' + lFork;
    }
    if (right == 1) {
-      //handle right fork due to circular structure
-      if (phil->id == 0) {
-         phil->status[NUM_PHILOSOPHERS-1] = '0' + (NUM_PHILOSOPHERS - 1);
-      }
-      else {
-         phil->status[phil->id-1] = '0' + (phil->id - 1);
-      }
+      phil->status[rFork] = '0' + rFork;
    }
    //concatenate status with eating or thinking
    if (whatState == 0) {
@@ -61,12 +64,9 @@ void printStatus(Philosopher *phil, int whatState, int left, int right) {
    }
    printf("\n");
 }
-//Initiate list of semaphores
-sem_t semaphores[NUM_PHILOSOPHERS];
-//Initiate list of philosopher structs
-Philosopher *listPhil[NUM_PHILOSOPHERS];
 
-void philAction(Philosopher *child) {
+void* philAction( void *arg) {
+   Philosopher *child = (Philosopher *) arg;
    if (child->id % 2 == 0) { //Pick up right fork first
       sem_wait(&child->rightFork);
 
@@ -103,6 +103,7 @@ void philAction(Philosopher *child) {
       sem_post(&semPrint);
    }
    else{} //don't forget odd
+   return (void *)child;
 
 }
 
@@ -115,23 +116,23 @@ for (int j = 0; j < NUM_PHILOSOPHERS; j++) {
    sem_init(&semaphores[j], 0, 1); 
 }
 //SUS!!! This means each thread would need to finish at the same time
-for (int k = 0; k < argv[1]; k++) {
+for (int k = 0; k < atoi(argv[1]); k++) {
    //Allocate memory for philosopher structs
    for (int i = 0; i < NUM_PHILOSOPHERS; i++) {
       //malloc for new philosopher struct 
-      Philosopher newPhilosopher = malloc(sizeof(Philosopher));
+      struct philosopher_info *newPhilosopher = malloc(sizeof(Philosopher));
       if (newPhilosopher == NULL) {
          perror("Malloc failed to create philosopher struct");
          exit(1);
       }   
       listPhil[i] = newPhilosopher;
       newPhilosopher->id = i; //number the philosophers
-      newPhilosopher->status = "-----"; //initialize to changing state
       int newThread = pthread_create(&listPhil[i]->threadPtr,NULL,philAction,(void *)listPhil[i]);   
       if (newThread != 0) {
          perror("Failed to create a new thread");
          exit(1);
       }
+      /*
       //specifies which semaphores are the left and right forks
       if (i == 0) {//special right fork for first philosophers
          leftFork = semaphores[0];
@@ -141,6 +142,7 @@ for (int k = 0; k < argv[1]; k++) {
          leftFork = semaphores[i];
          rightFork = semaphores[i-1];
       }
+      */
    }
 }
 
