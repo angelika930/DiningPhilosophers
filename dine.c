@@ -90,26 +90,25 @@ void* philAction( void *arg) {
  
          //print for picking up left fork
          printStatus(child, -1, 1, 1);
+         
          //print both forks picked up and "Eat"
          printStatus(child, 0, 1, 1); 
 
          dawdle(); //eat for random amount
-      
-         sem_post(child->rightFork); //set down right fork
-   
-         //putting down right fork
+     
          printStatus(child, -1, 1, 1); 
+    
+         sem_post(child->rightFork); //set down right fork
+         //putting down right fork
+     
+         
+         sem_post(child->leftFork); //set down left fork
          printStatus(child, -1, 1, 0);
 
-
-         printStatus(child, -1, -1, -1);
-
-
-
-         sem_post(child->leftFork); //set down left fork
-      
          //print changing line aka "-----"
-        // printStatus(child, -1, -1, -1);
+         printStatus(child, -1, -1, -1);
+         
+         dawdle();
 
          //print philosopher thinking
          printStatus(child, 1, -1, -1);
@@ -127,28 +126,30 @@ void* philAction( void *arg) {
          printStatus(child, -1, 1, 0);
          
          sem_wait(child->rightFork);//then pick up right fork
-         //printf for picking up right fork
          printStatus(child, -1, 1, 1);
+
+         //printf for picking up right fork
+       //  printStatus(child, -1, 1, 1);
          printStatus(child, 0, 1, 1); //display phil is eating
 
          dawdle(); //eat for random amount
       
+
+         printStatus(child, -1 , 1, 1);
+
          sem_post(child->leftFork); //set down left fork first
-   
-         //display stopped eating
-         printStatus(child, -1, 1, 1); 
+         //print we have both forks but not eating 
+    //     printStatus(child, -1, 1, 1);
+
          //display putting down left fork
          printStatus(child, -1, 0, 1);
   
-       
+         sem_post(child->rightFork); //set down right fork
+   
+         //print changing line aka "-----"
          printStatus(child, -1, -1, -1);
 
-
-
-         sem_post(child->rightFork); //set down left fork
-      
-         //print changing line aka "-----"
-         //printStatus(child, -1, -1, -1);
+         dawdle();
 
          //print philosopher thinking
          printStatus(child, 1, -1, -1);
