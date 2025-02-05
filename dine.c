@@ -7,6 +7,7 @@
 #define NUM_PHILOSOPHERS 5
 #endif
 #define STRINGSIZE 8
+#define COLWIDTH 10
 
 void dawdle(void); //function prototype for dawdle
 
@@ -60,16 +61,20 @@ void printStatus(Philosopher *phil, int whatState, int left, int right) {
    }
    //concatenate status with eating or thinking
    if (whatState == 0) {
-      snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", "    Eat");
-   }
+      snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", " Eat   ");
+   //   snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", "    Eat"); 
+  }
    else if (whatState == 1) {
-      snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", "  Think");
-   }
+      snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", " Think ");
+  //    snprintf(phil->status+NUM_PHILOSOPHERS, STRINGSIZE, "%s", "  Think"); 
+    }
 
    //print out status of all philosophers
    int i;
+   printf("|");
    for (i = 0; i < NUM_PHILOSOPHERS; i++) {
-      printf("|%s     |", listPhil[i]->status);
+      printf("%s |", listPhil[i]->status);
+ //     printf("|%s     |", listPhil[i]->status);
    }
    printf("\n");
    sem_post(semPrint);
@@ -159,17 +164,6 @@ void* philAction( void *arg) {
 
 }
 
-char label(int id) {
-
-   char letter = 'A' + (id%26);
-   if (id <=26) {
-      return letter;
-   }
-   else {
-      
-   }
-}
-
 
 
 int main(int argc, char *argv[]) {
@@ -239,9 +233,50 @@ struct philosopher_info *newPhil = malloc(sizeof(struct philosopher_info));
       }
    
    }
-   
+  
+   //Declare variables for printing header
+   int c;
+   int center;
+   int maxSize = NUM_PHILOSOPHERS+ COLWIDTH;
+   char buffer[maxSize];
+   //Print top divider
+   printf("|");
+   for (c = 0; c < NUM_PHILOSOPHERS; c++) {
+      //fill buffer with all "=", then print
+      memset(buffer, '=', maxSize*sizeof(char)-2);
+      buffer[maxSize-1] = '\0';
+      printf("%s|", buffer);
+   }
+   printf("\n");
+
+   printf("|");
+   //Print philosopher labels
+   for (c = 0; c < NUM_PHILOSOPHERS; c++) {
+      char label;
+      //calculate philosopher label using ASCII values
+      label = 'A'+ c;
+      //center label in buffer
+      center = maxSize/2;
+      //set buffer to all white spaces then add label in
+      memset(buffer, ' ', maxSize*sizeof(char)-2);
+      buffer[center] = label;
+      buffer[maxSize-1] = '\0';
+      printf("%s|", buffer);
+   } 
+   printf("\n");
+
+   //Print bottom divider 
+   printf("|");
+   for (c = 0; c < NUM_PHILOSOPHERS; c++) {
+      //fill buffer with all "=", then print
+      memset(buffer, '=', maxSize*sizeof(char)-2);
+      buffer[maxSize-1] = '\0';
+      printf("%s|", buffer);
+   }
+   printf("\n");
+
    //Launch pthreads
-   int b, newThread;
+   int b;
    for (b = 0; b < NUM_PHILOSOPHERS; b++) {
 pthread_create(&listPhil[b]->threadPtr,NULL,philAction,(void *)listPhil[b]);   
 /*      if (newThread != 0) {
