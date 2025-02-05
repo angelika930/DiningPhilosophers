@@ -97,16 +97,15 @@ void* philAction( void *arg) {
          dawdle(); //eat for random amount
      
          printStatus(child, -1, 1, 1); 
-    
+   
+
+         printStatus(child, -1, 1, 0);
          sem_post(child->rightFork); //set down right fork
          //putting down right fork
-     
-         
-         sem_post(child->leftFork); //set down left fork
-         printStatus(child, -1, 1, 0);
-
-         //print changing line aka "-----"
+    
+         //print changing line aka "-----" 
          printStatus(child, -1, -1, -1);
+         sem_post(child->leftFork); //set down left fork
          
          dawdle();
 
@@ -128,26 +127,19 @@ void* philAction( void *arg) {
          sem_wait(child->rightFork);//then pick up right fork
          printStatus(child, -1, 1, 1);
 
-         //printf for picking up right fork
-       //  printStatus(child, -1, 1, 1);
          printStatus(child, 0, 1, 1); //display phil is eating
 
          dawdle(); //eat for random amount
-      
-
          printStatus(child, -1 , 1, 1);
-
-         sem_post(child->leftFork); //set down left fork first
-         //print we have both forks but not eating 
-    //     printStatus(child, -1, 1, 1);
 
          //display putting down left fork
          printStatus(child, -1, 0, 1);
-  
-         sem_post(child->rightFork); //set down right fork
-   
+
+         sem_post(child->leftFork); //set down left fork first
+
          //print changing line aka "-----"
          printStatus(child, -1, -1, -1);
+         sem_post(child->rightFork); //set down right fork
 
          dawdle();
 
@@ -166,6 +158,19 @@ void* philAction( void *arg) {
    return (void *)child;
 
 }
+
+char label(int id) {
+
+   char letter = 'A' + (id%26);
+   if (id <=26) {
+      return letter;
+   }
+   else {
+      
+   }
+}
+
+
 
 int main(int argc, char *argv[]) {
 
@@ -234,6 +239,7 @@ struct philosopher_info *newPhil = malloc(sizeof(struct philosopher_info));
       }
    
    }
+   
    //Launch pthreads
    int b, newThread;
    for (b = 0; b < NUM_PHILOSOPHERS; b++) {
